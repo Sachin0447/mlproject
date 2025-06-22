@@ -3,6 +3,7 @@ import numpy as np
 from src.logger import logging
 from src.exception import CustomException
 import os
+import sys
 from src.utils import save_object, evaluate_model  # Import both functions here
 from dataclasses import dataclass
 from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, RandomForestRegressor
@@ -12,6 +13,63 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from catboost import CatBoostRegressor
 from xgboost import XGBRegressor
+
+params = {
+    'LinearRegression': {},
+
+    'DecisionTreeRegressor': {
+        'criterion': ['squared_error', 'friedman_mse'],
+        'max_depth': [3, 5, 10, 15, 20, None],
+        'min_samples_split': [2, 5, 10, 20],
+        'min_samples_leaf': [1, 2, 4, 10]
+    },
+
+    'RandomForestRegressor': {
+        'n_estimators': [100, 200, 300, 400, 500],
+        'max_depth': [5, 10, 15, 20, None],
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 2, 4],
+        'bootstrap': [True, False]
+    },
+
+    'AdaBoostRegressor': {
+        'n_estimators': [50, 100, 200, 300],
+        'learning_rate': [0.01, 0.05, 0.1, 0.5, 1.0],
+        'loss': ['linear', 'square', 'exponential']
+    },
+
+    'GradientBoostingRegressor': {
+        'n_estimators': [100, 200, 300, 400],
+        'learning_rate': [0.01, 0.05, 0.1, 0.2],
+        'max_depth': [3, 5, 7, 10],
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 2, 4]
+    },
+
+    'KNeighborsRegressor': {
+        'n_neighbors': [3, 5, 7, 9, 11, 15],
+        'weights': ['uniform', 'distance'],
+        'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
+        'p': [1, 2]
+    },
+
+    'XGBRegressor': {
+        'n_estimators': [100, 200, 300, 400],
+        'learning_rate': [0.01, 0.05, 0.1, 0.2],
+        'max_depth': [3, 5, 7, 10],
+        'subsample': [0.6, 0.8, 1.0],
+        'colsample_bytree': [0.6, 0.8, 1.0]
+    },
+
+    'CatBoostRegressor': {
+        'iterations': [100, 200, 300, 400],
+        'learning_rate': [0.01, 0.05, 0.1, 0.2],
+        'depth': [4, 6, 8, 10],
+        'l2_leaf_reg': [1, 3, 5, 7, 9],
+        'bagging_temperature': [0.0, 0.5, 1.0]
+    }
+}
+
 
 @dataclass
 class ModelTrainerConfig:
@@ -43,7 +101,7 @@ class ModelTrainer:
             }
 
             model_report: dict = evaluate_model(
-                x_train=x_train, x_test=x_test, y_train=y_train, y_test=y_test, model=models
+                x_train=x_train, x_test=x_test, y_train=y_train, y_test=y_test, model=models,param=params
             )
             best_model_score = max(sorted(model_report.values()))
             best_model_name = list(model_report.keys())[
